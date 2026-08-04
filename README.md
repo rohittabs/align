@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="logo.png" alt="Align" width="200">
+<img src="Logo.png" alt="Align" width="200">
 
 # Align
 
@@ -147,6 +147,6 @@ MIT. See [LICENSE](LICENSE). Use it, change it, ship it, sell it. Attribution ap
 
 <div align="center">
 
-Built by [Rohit Mishra](https://github.com/rohittabs)
+Built by [rohittabs](https://github.com/rohittabs)
 
 </div>

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Align in 2 minutes</title>
+<meta name="description" content="A free guitar and ukulele tuner that runs in your browser. No app, no account, accurate to 0.04 cents.">
+<meta name="theme-color" content="#0A0810">
+<link rel="icon" type="image/png" href="favicon.png">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Align, a tuner that holds still">
+<meta property="og:description" content="A free guitar and ukulele tuner that runs in your browser. No app, no account, accurate to 0.04 cents.">
+<meta property="og:image" content="icon-512.png">
+<meta property="og:url" content="https://rohittabs.github.io/align/slides.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Align, a tuner that holds still">
+<meta name="twitter:description" content="A free guitar and ukulele tuner that runs in your browser. No app, no account, accurate to 0.04 cents.">
+<meta name="twitter:image" content="icon-512.png">
+
+<style>
+:root{
+  --bg:#0A0810;
+  --grad:linear-gradient(120deg,#EC008C 0%,#8B1C9E 52%,#3730A3 100%);
+  --ok:#2EE6A8;
+  --muted:rgba(255,255,255,.7);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%;background:#000}
+body{
+  font-family:"SF Pro Display",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,"Helvetica Neue",Arial,sans-serif;
+  color:#fff;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+
+.stage{height:100dvh;width:100%;display:flex;align-items:center;justify-content:center;background:#000;}
+.feed{
+  position:relative;height:100dvh;width:100%;max-width:480px;background:var(--bg);
+  overflow-y:scroll;overflow-x:hidden;
+  scroll-snap-type:y mandatory;scroll-behavior:smooth;
+  -ms-overflow-style:none;scrollbar-width:none;
+}
+.feed::-webkit-scrollbar{display:none;width:0;height:0}
+@media (min-width:520px){
+  .stage{padding:22px}
+  .feed{height:min(920px,calc(100dvh - 44px));border-radius:42px;box-shadow:0 40px 120px rgba(236,0,140,.3),0 0 0 1px rgba(255,255,255,.06);}
+}
+
+.slide{
+  height:100dvh;width:100%;scroll-snap-align:start;scroll-snap-stop:always;
+  display:flex;flex-direction:column;justify-content:flex-start;
+  padding:calc(64px + env(safe-area-inset-top)) 30px calc(52px + env(safe-area-inset-bottom));
+  position:relative;overflow-y:auto;overflow-x:hidden;
+  -ms-overflow-style:none;scrollbar-width:none;
+}
+.slide::-webkit-scrollbar{display:none;width:0;height:0}
+@media (min-width:520px){ .slide{height:min(920px,calc(100dvh - 44px))} }
+
+.slide::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.9;
+  background:radial-gradient(70% 40% at 15% 12%,rgba(236,0,140,.16),transparent 70%),radial-gradient(60% 42% at 92% 92%,rgba(55,48,163,.26),transparent 72%);}
+
+.inner{position:relative;z-index:1;display:flex;flex-direction:column;gap:20px;margin:auto 0}
+
+.rise{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.8,.2,1),transform .7s cubic-bezier(.2,.8,.2,1)}
+.slide.inview .rise{opacity:1;transform:none}
+.slide.inview .rise:nth-child(2){transition-delay:.08s}
+.slide.inview .rise:nth-child(3){transition-delay:.16s}
+.slide.inview .rise:nth-child(4){transition-delay:.24s}
+.slide.inview .rise:nth-child(5){transition-delay:.32s}
+.slide.inview .rise:nth-child(6){transition-delay:.4s}
+.slide.inview .rise:nth-child(7){transition-delay:.48s}
+
+h1,h2,p,ul{margin:0}
+.kicker{font-size:13px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+h1{font-size:64px;font-weight:850;line-height:.98;letter-spacing:-.03em}
+h2{font-size:37px;font-weight:820;line-height:1.08;letter-spacing:-.02em}
+.lead{font-size:22px;font-weight:750;line-height:1.28;letter-spacing:-.01em}
+p{font-size:18px;line-height:1.5;color:var(--muted);font-weight:500}
+p strong{color:#fff;font-weight:750}
+.gt{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.gk{color:var(--ok)}
+.stat{font-size:118px;font-weight:850;line-height:.86;letter-spacing:-.04em}
+.stat.sm{font-size:82px}
+.unit{font-size:24px;font-weight:750;color:var(--muted);letter-spacing:-.01em}
+
+.ladder{display:flex;flex-direction:column;gap:14px}
+.ladder .item{display:flex;flex-direction:column;gap:8px}
+.ladder .lab{display:flex;justify-content:space-between;font-size:17px;font-weight:700;gap:12px}
+.ladder .lab .pct{color:var(--muted);font-weight:600;font-size:15px;text-align:right}
+.ladder .bar{height:12px;border-radius:8px;background:rgba(255,255,255,.1);overflow:hidden}
+.ladder .fill{height:100%;border-radius:8px;background:var(--grad);width:0;transition:width 1s cubic-bezier(.2,.8,.2,1)}
+.ladder .fill.good{background:linear-gradient(120deg,#2EE6A8,#22B98A)}
+.slide.inview .ladder .fill{width:var(--w)}
+
+.tones{display:flex;flex-direction:column;gap:13px}
+.tone{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:15px 17px}
+.tone .t{font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.tone .q{font-size:18px;font-weight:750;letter-spacing:-.01em;line-height:1.3}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.gcell{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:17px;padding:14px 15px}
+.gcell .n{font-size:29px;font-weight:850;letter-spacing:-.02em;line-height:1}
+.gcell .l{font-size:14px;color:var(--muted);font-weight:600;margin-top:5px;line-height:1.3}
+
+.chips{display:flex;flex-wrap:wrap;gap:9px}
+.chip{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:999px;
+  padding:9px 15px;font-size:15px;font-weight:750;letter-spacing:-.01em}
+
+/* the little gauge on slide 1 */
+.gauge{position:relative;width:200px;height:124px;margin:2px auto 0}
+.gauge .ring{position:absolute;left:0;top:0;width:200px;height:200px;border-radius:50%;
+  background:conic-gradient(from 320deg,rgba(255,255,255,.14) 0 80deg,transparent 80deg);
+  -webkit-mask:radial-gradient(closest-side,transparent 0 72%,#000 73% 81%,transparent 82%);
+  mask:radial-gradient(closest-side,transparent 0 72%,#000 73% 81%,transparent 82%)}
+.gauge .zero{position:absolute;left:50%;top:4px;width:2px;height:15px;margin-left:-1px;border-radius:2px;
+  background:var(--ok);box-shadow:0 0 12px rgba(46,230,168,.7)}
+.gauge .ndl{position:absolute;left:50%;bottom:24px;width:4px;height:78px;margin-left:-2px;border-radius:3px;
+  transform-origin:50% 100%;background:linear-gradient(180deg,var(--ok),rgba(46,230,168,.25));
+  box-shadow:0 0 18px rgba(46,230,168,.55);transform:rotate(34deg);
+  transition:transform 1.4s cubic-bezier(.34,1.32,.5,1) .25s}
+.slide.inview .gauge .ndl{transform:rotate(0deg)}
+.gauge .hub{position:absolute;left:50%;bottom:24px;width:14px;height:14px;margin:0 0 -7px -7px;border-radius:50%;
+  background:#1B1329;border:2px solid rgba(255,255,255,.25)}
+.gauge .note{position:absolute;left:0;right:0;bottom:0;text-align:center;font-size:52px;font-weight:850;
+  letter-spacing:-.03em;line-height:1;background:linear-gradient(180deg,#2EE6A8,#1FA378);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.gauge .note em{font-style:normal;font-size:.44em;-webkit-text-fill-color:rgba(255,255,255,.45)}
+
+.cta{display:inline-flex;align-items:center;justify-content:center;gap:9px;background:var(--grad);color:#fff;font-size:19px;font-weight:800;padding:17px 26px;border-radius:16px;border:none;cursor:pointer;box-shadow:0 16px 40px -12px rgba(236,0,140,.65);text-decoration:none;letter-spacing:-.01em}
+.cta:active{transform:scale(.98)}
+.copied{font-size:15px;font-weight:700;color:#2EE6A8;opacity:0;transition:opacity .3s}
+.copied.on{opacity:1}
+.url{font-size:20px;font-weight:800;letter-spacing:-.01em;word-break:break-all}
+
+.brandmark{display:flex;align-items:center;gap:13px}
+.brandmark img{width:52px;height:52px;border-radius:50%;filter:drop-shadow(0 6px 18px rgba(236,0,140,.5))}
+.brandmark span{font-size:15px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+
+.progress{position:fixed;top:0;left:0;right:0;height:calc(4px + env(safe-area-inset-top));z-index:50;background:transparent;pointer-events:none}
+.progress .track{position:absolute;top:env(safe-area-inset-top);left:0;right:0;height:4px;background:rgba(255,255,255,.12)}
+.progress .barfill{position:absolute;top:env(safe-area-inset-top);left:0;height:4px;width:0;background:var(--grad);transition:width .2s ease}
+@media (min-width:520px){
+  .progress{max-width:480px;left:50%;transform:translateX(-50%);top:22px}
+  .progress .track,.progress .barfill{top:0;border-radius:0 0 4px 4px}
+  .progress{border-radius:42px 42px 0 0;overflow:hidden}
+}
+
+.swipe{position:absolute;left:0;right:0;bottom:calc(30px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:6px;z-index:2;color:var(--muted)}
+.swipe span{font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.swipe .chev{width:26px;height:26px;animation:bob 1.6s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0);opacity:.55}50%{transform:translateY(-9px);opacity:1}}
+.feed.scrolled .swipe{opacity:0;transition:opacity .4s}
+
+@media (prefers-reduced-motion:reduce){
+  .rise{transition:none;opacity:1;transform:none}
+  .feed{scroll-behavior:auto}
+  .swipe .chev{animation:none}
+  .ladder .fill{transition:none}
+  .gauge .ndl{transition:none;transform:rotate(0deg)}
+}
+</style>
+</head>
+<body>
+
+<div class="progress"><div class="track"></div><div class="barfill" id="bar"></div></div>
+
+<div class="stage">
+<div class="feed" id="feed">
+
+  <section class="slide">
+    <div class="inner">
+      <div class="rise brandmark">
+        <img src="Logo.png" alt="">
+        <span>Align</span>
+      </div>
+      <h1 class="rise">A tuner that <span class="gt">holds still</span>.</h1>
+      <div class="rise gauge">
+        <div class="ring"></div><div class="zero"></div>
+        <div class="ndl"></div><div class="hub"></div>
+        <div class="note">E<em>2</em></div>
+      </div>
+      <p class="rise lead">Free. No app to install. No account. Open it and play.</p>
+    </div>
+    <div class="swipe">
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
+      <span>Swipe up</span>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="inner">
+      <div class="rise kicker">The problem with browser tuners</div>
+      <h2 class="rise">The needle never <span class="gt">sits still</span>.</h2>
+      <p class="rise">You pluck a string and the pointer twitches across half the dial. You cannot tell whether you are sharp, flat, or done. So you turn the peg, guess, and turn it back.</p>
+      <p class="rise"><strong>That is not your ear. It is the software.</strong></p>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="inner">
+      <div class="rise kicker">Why it happens</div>
+      <h2 class="rise">A quiet room is enough to break it.</h2>
+      <p class="rise">Here is how far a typical browser tuner's needle jumps between one frame and the next, measured in cents.</p>
+      <div class="rise ladder">
+        <div class="item"><div class="lab"><span>Silent room</span><span class="pct">0.02¢</span></div><div class="bar"><div class="fill" style="--w:2%"></div></div></div>
+        <div class="item"><div class="lab"><span>Quiet room</span><span class="pct">2.1¢</span></div><div class="bar"><div class="fill" style="--w:17%"></div></div></div>
+        <div class="item"><div class="lab"><span>Noisy room</span><span class="pct">10.1¢</span></div><div class="bar"><div class="fill" style="--w:82%"></div></div></div>
+        <div class="item"><div class="lab"><span>Phone across the room</span><span class="pct">12.3¢</span></div><div class="bar"><div class="fill" style="--w:100%"></div></div></div>
+      </div>
+      <p class="rise">Twelve cents per frame is the needle swinging thirteen degrees, sixty times a second.</p>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="inner">
+      <div class="rise kicker">What Align does instead</div>
+      <h2 class="rise">Four filters between the microphone and the needle.</h2>
+      <p class="rise"><strong>Confidence gate.</strong> Frames the detector is not sure about are thrown away, not displayed.</p>
+      <p class="rise"><strong>Octave snapping.</strong> A ringing neighbour cannot drag the reading an octave off.</p>
+      <p class="rise"><strong>Outlier rejection.</strong> One wild frame is ignored. A run of them means you changed note.</p>
+      <p class="rise"><strong>Adaptive smoothing.</strong> Smooths hard while the pitch is steady, opens up the instant you turn a peg.</p>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="inner">
+      <div class="rise kicker">Same rooms, same microphone</div>
+      <h2 class="rise">Now the needle <span class="gk">parks</span>.</h2>
+      <div class="rise ladder">
+        <div class="item"><div class="lab"><span>Quiet room</span><span class="pct">2.1¢ &rarr; 0.27¢</span></div><div class="bar"><div class="fill good" style="--w:3%"></div></div></div>
+        <div class="item"><div class="lab"><span>Noisy room</span><span class="pct">10.1¢ &rarr; 0.23¢</span></div><div class="bar"><div class="fill good" style="--w:2%"></div></div></div>
+        <div class="item"><div class="lab"><span>Loud room</span><span class="pct">8.0¢ &rarr; 0.34¢</span></div><div class="bar"><div class="fill good" style="--w:3%"></div></div></div>
+        <div class="item"><div class="lab"><span>Phone across the room</span><span class="pct">12.3¢ &rarr; 0.66¢</span></div><div class="bar"><div class="fill good" style="--w:6%"></div></div></div>
+      </div>
+      <p class="rise">Up to <strong>forty times steadier</strong>, without adding any lag you can feel.</p>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="inner">
+      <div class="rise kicker">Accuracy</div>
+      <div class="rise stat gt">0.04<span class="unit"> cents</span></div>
+      <p class="rise lead">across seventeen notes from C2 to E5.</p>
+      <p class="rise">A cent is a hundredth of a semitone. A trained ear picks out about five of them on a sustained note. Align resolves a hundred times finer than that, and it reads correctly even when the fundamental is missing entirely, which is what usually happens when a phone microphone is asked to hear a low E.</p>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="inner">
+      <div class="rise kicker">The other classic failure</div>
+      <h2 class="rise">Cheap tuners jump an octave.</h2>
+      <p class="rise">Pluck a low E and half of them will confidently show you E3. It happens because they pick the strongest match in the signal, and on a plucked string that is often the wrong one.</p>
+      <p class="rise">Align takes the <strong>first</strong> strong match instead of the loudest.</p>
+      <div class="rise grid">
+        <div class="gcell"><div class="n">150</div><div class="l">random pitches tested, 62 to 500 Hz</div></div>
+        <div class="gcell"><div class="n gk">0</div><div class="l">octave errors</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="inner">
+      <div class="rise kicker">And it stays fast</div>
+      <h2 class="rise">140 times cheaper than the naive way.</h2>
+      <div class="rise tones">
+        <div class="tone"><div class="t">Textbook approach</div><div class="q">47 ms per frame &mdash; three times the entire frame budget</div></div>
+        <div class="tone"><div class="t">Align</div><div class="q gk">0.33 ms per frame</div></div>
+      </div>
+      <p class="rise">That difference is why the interface stays smooth on a mid range phone instead of stuttering and heating up in your hand.</p>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="inner">
+      <div class="rise kicker">When it lands</div>
+      <h2 class="rise">Green, and a little chime.</h2>
+      <p class="rise">Inside three cents the needle turns green, the gauge fills, and you hear a short two note blip. You can keep your eyes on your hands instead of the screen.</p>
+      <p class="rise">It fires <strong>once</strong>. It will not chatter at you while the needle hovers on the boundary, and it will not repeat while the string holds. Tap the note in the header to mute it.</p>
+      <p class="rise">Strings you have finished stay marked, so you can see your progress along the row.</p>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="inner">
+      <div class="rise kicker">What is inside</div>
+      <div class="rise grid">
+        <div class="gcell"><div class="n">12</div><div class="l">built in tunings</div></div>
+        <div class="gcell"><div class="n">2</div><div class="l">modes, chromatic and preset</div></div>
+        <div class="gcell"><div class="n">415&ndash;466</div><div class="l">Hz reference pitch range</div></div>
+        <div class="gcell"><div class="n">&#8734;</div><div class="l">custom tunings you can build</div></div>
+      </div>
+      <div class="rise chips">
+        <div class="chip">Standard E</div><div class="chip">Drop D</div><div class="chip">Drop C</div>
+        <div class="chip">DADGAD</div><div class="chip">Open G</div><div class="chip">Open D</div>
+        <div class="chip">Half Step Down</div><div class="chip">Baritone uke</div><div class="chip">Low G</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="inner">
+      <div class="rise kicker">Nothing is sent anywhere</div>
+      <h2 class="rise">There is no server.</h2>
+      <p class="rise">No account, no sign up, no tracking, no ads, no third party scripts. The audio is read from your microphone, analysed on your device, and discarded frame by frame. Nothing is recorded and nothing is uploaded.</p>
+      <p class="rise">The whole application is <strong>one HTML file</strong>. Your tunings and settings live in your own browser.</p>
+      <p class="rise">What you play is nobody else's data.</p>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="inner">
+      <div class="rise brandmark">
+        <img src="Logo.png" alt="">
+        <span>Align</span>
+      </div>
+      <h2 class="rise">Tune up.</h2>
+      <div class="rise url gt">rohittabs.github.io/align</div>
+      <p class="rise">Free forever. Open it, tap start, pluck a string. You will know inside ten seconds whether it feels different.</p>
+      <a class="rise cta" href="https://rohittabs.github.io/align/">Open Align</a>
+      <button class="rise cta" id="copy" style="background:rgba(255,255,255,.08);box-shadow:none;border:1px solid rgba(255,255,255,.16)">Copy link</button>
+      <div class="rise copied" id="copied">Copied</div>
+    </div>
+  </section>
+
+</div>
+</div>
+
+<script>
+(function(){
+  var feed=document.getElementById('feed');
+  var slides=[].slice.call(document.querySelectorAll('.slide'));
+  var bar=document.getElementById('bar');
+
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting) e.target.classList.add('inview') });
+    },{root:feed,threshold:0.35});
+    slides.forEach(function(s){io.observe(s)});
+  } else {
+    slides.forEach(function(s){s.classList.add('inview')});
+  }
+  slides[0].classList.add('inview');
+
+  feed.addEventListener('scroll',function(){
+    var max=feed.scrollHeight-feed.clientHeight;
+    bar.style.width=(max>0?(feed.scrollTop/max)*100:0)+'%';
+    if(feed.scrollTop>40) feed.classList.add('scrolled');
+  },{passive:true});
+
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='ArrowDown'&&e.key!=='ArrowUp'&&e.key!==' ')return;
+    e.preventDefault();
+    var h=slides[0].getBoundingClientRect().height;
+    var i=Math.round(feed.scrollTop/h)+((e.key==='ArrowUp')?-1:1);
+    i=Math.max(0,Math.min(slides.length-1,i));
+    feed.scrollTo({top:i*h,behavior:'smooth'});
+  });
+
+  var btn=document.getElementById('copy'),tag=document.getElementById('copied');
+  btn.addEventListener('click',function(){
+    var url='https://rohittabs.github.io/align/';
+    function done(){tag.classList.add('on');setTimeout(function(){tag.classList.remove('on')},2000)}
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(url).then(done,done);
+    } else {
+      var t=document.createElement('textarea');
+      t.value=url;document.body.appendChild(t);t.select();
+      try{document.execCommand('copy')}catch(e){}
+      document.body.removeChild(t);done();
+    }
+  });
+})();
+</script>
+</body>
+</html>
